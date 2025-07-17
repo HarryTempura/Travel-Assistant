@@ -1,0 +1,5 @@
+ollama:
+  gemma3_4b: gemma3:4b
+  qwen3_06b: qwen3:0.6b
+  qwen3_4b: qwen3:4b
+  temperature: 0.3
