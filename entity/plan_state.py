@@ -1,6 +1,9 @@
-from typing import TypedDict
+import operator
+from typing import TypedDict, Annotated
 
 
 class PlanState(TypedDict):
     location: str
-    ques_answer:dict[str,str]
+    questions: list[str]
+    answers: list[str]
+    request: Annotated[list[str], operator.add]

@@ -1,4 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.types import Send
 
 from common.llms import OLLAMA_QWEN3_06B
 from entity.questions import Questions
@@ -20,7 +21,7 @@ def question_node(state=None):
 
 ### 指令
 
-和用户明确旅行的主题（放松度假、文化探索等）、预算、必去景点、计划出行时间和地点、个人偏好等问题。给出问题列表。
+和用户明确旅行的主题（放松度假、文化探索等）、预算、必去景点、计划出行时间和地点、个人偏好等问题。给出问题列表，用于对用户进行提问。
 
 ### 注意！避免任何额外的输出！
     """.strip()
@@ -32,13 +33,29 @@ def question_node(state=None):
     questions = llm.invoke([SystemMessage(content=sys_prompt), HumanMessage(content=human_prompt)])
     questions = questions.question
 
-    # 初始化字典以存储问题及其答案
-    ques_answer = {}
+    answers = []
     for question in questions:
         # 提出问题并接收用户输入的答案
         answer = input(f'Assistant:\n{question}')
-        # 将问题和答案存储在字典中
-        ques_answer[question] = answer
+        answers.append(answer)
 
     # 返回包含所有问题答案的字典
-    return {'ques_answer': ques_answer}
+    return {'questions': questions, 'answers': answers}
+
+
+def question_cond(state):
+    """
+    根据给定的状态字典，为每个问题生成一个 Send 操作的列表。
+
+    :param state: 包含问题和答案的字典，其中 questions 键对应问题列表，answers 键对应答案列表。
+    :return: 一个列表，每个元素都是一个 Send 操作，用于发送一个问题及其对应答案。
+    """
+    # 初始化结果列表，用于存储生成的'Send'操作
+    result = []
+
+    # 遍历状态字典中的问题列表
+    for i in range(len(state['questions'])):
+        # 为每个问题和答案对生成一个'Send'操作，并添加到结果列表中
+        result.append(Send('understanding', {'question': state['questions'][i], 'answer': state['answers'][i]}))
+
+    return result
